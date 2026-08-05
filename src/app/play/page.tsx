@@ -1224,15 +1224,15 @@ function PlayPageClient() {
             }
 
             // 没有记忆或记忆失效，让用户选择
-            console.log(`等待用户选择弹幕源`);
-            setDanmakuMatches(filteredAnimes);
-            setCurrentSearchKeyword(searchKeyword); // 保存当前搜索关键词
-            setShowDanmakuSourceSelector(true);
-            setDanmakuLoading(false);
-            if (artPlayerRef.current) {
-              artPlayerRef.current.notice.show = `找到 ${filteredAnimes.length} 个弹幕源，请选择`;
-            }
-            return;
+            // console.log(`等待用户选择弹幕源`);
+            // setDanmakuMatches(filteredAnimes);
+            // setCurrentSearchKeyword(searchKeyword); // 保存当前搜索关键词
+            // setShowDanmakuSourceSelector(true);
+            // setDanmakuLoading(false);
+            // if (artPlayerRef.current) {
+            //   artPlayerRef.current.notice.show = `找到 ${filteredAnimes.length} 个弹幕源，请选择`;
+            // }
+            // return;
           }
 
           // 只有一个结果，直接使用
@@ -6263,17 +6263,17 @@ function PlayPageClient() {
         );
 
         // 如果有多个匹配结果，让用户选择
-        if (filteredAnimes.length > 1) {
-          console.log(`找到 ${filteredAnimes.length} 个弹幕源，等待用户选择`);
-          setDanmakuMatches(filteredAnimes);
-          setCurrentSearchKeyword(searchKeyword); // 保存当前搜索关键词
-          setShowDanmakuSourceSelector(true);
-          setDanmakuLoading(false);
-          if (artPlayerRef.current) {
-            artPlayerRef.current.notice.show = `找到 ${filteredAnimes.length} 个弹幕源，请选择`;
-          }
-          return;
-        }
+        // if (filteredAnimes.length > 1) {
+        //   console.log(`找到 ${filteredAnimes.length} 个弹幕源，等待用户选择`);
+        //   setDanmakuMatches(filteredAnimes);
+        //   setCurrentSearchKeyword(searchKeyword); // 保存当前搜索关键词
+        //   setShowDanmakuSourceSelector(true);
+        //   setDanmakuLoading(false);
+        //   if (artPlayerRef.current) {
+        //     artPlayerRef.current.notice.show = `找到 ${filteredAnimes.length} 个弹幕源，请选择`;
+        //   }
+        //   return;
+        // }
 
         // 只有一个结果，直接使用
         const anime = filteredAnimes[0];
