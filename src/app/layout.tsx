@@ -85,6 +85,7 @@ export default async function RootLayout({
   let danmakuAutoLoadDefault = true;
   let recommendationDataSource = 'Mixed';
   let tmdbApiKey = '';
+  let tmdbReverseProxy = '';
   let bangumiDataSource =
     (process.env.NEXT_PUBLIC_BANGUMI_DATA_SOURCE as any) || 'direct';
   let bangumiApiBaseUrl =
@@ -175,6 +176,7 @@ export default async function RootLayout({
     recommendationDataSource =
       config.SiteConfig.RecommendationDataSource || 'Mixed';
     tmdbApiKey = config.SiteConfig.TMDBApiKey || '';
+    tmdbReverseProxy = config.SiteConfig.TMDBReverseProxy || '';
     bangumiDataSource = config.SiteConfig.BangumiDataSource || 'direct';
     bangumiApiBaseUrl =
       config.SiteConfig.BangumiApiBaseUrl || 'https://api.bgm.tv';
@@ -319,6 +321,7 @@ export default async function RootLayout({
     AIConfig: {
       EnableAIComments: aiEnableComments,
     },
+    TMDB_REVERSE_PROXY: (tmdbReverseProxy || process.env.TMDB_REVERSE_PROXY || '').replace(/\/+$/, ''),
     AI_DEFAULT_MESSAGE_NO_VIDEO: aiDefaultMessageNoVideo,
     AI_DEFAULT_MESSAGE_WITH_VIDEO: aiDefaultMessageWithVideo,
     ENABLE_MOVIE_REQUEST: enableMovieRequest,

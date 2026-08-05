@@ -238,7 +238,11 @@ export function getTMDBImageUrl(
   }
 
   const baseUrl = typeof window !== 'undefined'
-    ? localStorage.getItem('tmdbImageBaseUrl') || 'https://image.tmdb.org'
+    ? (
+        (localStorage.getItem('tmdbImageBaseUrl') || '').trim() ||
+        ((window as any).RUNTIME_CONFIG?.TMDB_REVERSE_PROXY || '').trim() ||
+        'https://image.tmdb.org'
+      )
     : 'https://image.tmdb.org';
   return `${baseUrl}/t/p/${size}${path}`;
 }

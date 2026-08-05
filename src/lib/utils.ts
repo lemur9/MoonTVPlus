@@ -573,8 +573,9 @@ export function processImageUrl(originalUrl: string): string {
   // 处理 TMDB 图片 URL 替换
   if (originalUrl.includes('image.tmdb.org')) {
     if (typeof window !== 'undefined') {
-      const tmdbImageBaseUrl =
-        localStorage.getItem('tmdbImageBaseUrl') || 'https://image.tmdb.org';
+      const personal = (localStorage.getItem('tmdbImageBaseUrl') || '').trim();
+      const fromEnv = ((window as any).RUNTIME_CONFIG?.TMDB_REVERSE_PROXY || '').trim();
+      const tmdbImageBaseUrl = personal || fromEnv || 'https://image.tmdb.org';
       // 只有当用户设置了不同的 baseUrl 时才进行替换
       if (tmdbImageBaseUrl !== 'https://image.tmdb.org') {
         return originalUrl.replace('https://image.tmdb.org', tmdbImageBaseUrl);
