@@ -298,32 +298,16 @@ export async function getDetailFromApiV2(
   id: string
 ): Promise<SearchResult> {
   const detailUrl = `${apiSite.api}${API_CONFIG.detail.path}${id}`;
-  const timeoutMs =
-    Number(process.env.SOURCE_DETAIL_TIMEOUT_MS) > 0
-      ? Number(process.env.SOURCE_DETAIL_TIMEOUT_MS)
-      : 20000;
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-  let response: Response;
-  try {
-    response = await fetch(detailUrl, {
-      headers: API_CONFIG.detail.headers,
-      signal: controller.signal,
-    });
-  } catch (error: any) {
-    const aborted =
-      error?.name === 'AbortError' ||
-      error?.message?.includes('aborted') ||
-      error?.message?.includes('abort');
-    if (aborted) {
-      throw new Error(`资源站详情请求超时: ${apiSite.name} (${timeoutMs}ms)`);
-    }
-    throw error;
-  } finally {
-    clearTimeout(timeoutId);
-  }
+  const response = await fetch(detailUrl, {
+    headers: API_CONFIG.detail.headers,
+    signal: controller.signal,
+  });
+
+  clearTimeout(timeoutId);
 
   if (!response.ok) {
     throw new Error(`详情请求失败: ${response.status}`);

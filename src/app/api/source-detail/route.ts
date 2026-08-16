@@ -69,38 +69,6 @@ import {
 } from '@/lib/source-script';
 
 export const runtime = 'nodejs';
-export const maxDuration = 30;
-
-function createTimingTracker() {
-  const startedAt = Date.now();
-  const timings: Record<string, number> = {};
-
-  return {
-    mark(name: string) {
-      timings[name] = Date.now() - startedAt;
-    },
-    headers() {
-      const totalMs = Date.now() - startedAt;
-      const detailMs = timings.detail_done_ms && timings.config_done_ms
-        ? timings.detail_done_ms - timings.config_done_ms
-        : undefined;
-
-      return {
-        'X-Source-Detail-Timing': JSON.stringify({
-          ...timings,
-          total_ms: totalMs,
-        }),
-        'Server-Timing': [
-          `total;dur=${totalMs}`,
-          timings.config_done_ms !== undefined
-            ? `config;dur=${timings.config_done_ms}`
-            : '',
-          detailMs !== undefined ? `detail;dur=${detailMs}` : '',
-        ].filter(Boolean).join(', '),
-      };
-    },
-  };
-}
 
 /**
  * 解析站点 origin。
@@ -1306,22 +1274,15 @@ export async function GET(request: NextRequest) {
   }
 
   // 对于其他采集源，直接按 id 获取详情。
-  const timing = createTimingTracker();
   try {
     const apiSites = await getAvailableApiSites(authInfo.username, includeSpecialSources);
-    timing.mark('config_done_ms');
     const apiSite = apiSites.find((site) => site.key === sourceCode);
 
     if (!apiSite) {
-      timing.mark('invalid_source_ms');
-      return NextResponse.json(
-        { error: '无效的API来源' },
-        { status: 400, headers: timing.headers() }
-      );
+      return NextResponse.json({ error: '无效的API来源' }, { status: 400 });
     }
 
     const result = await getDetailFromApiV2(apiSite, id);
-    timing.mark('detail_done_ms');
 
     // 添加 proxyMode 到返回结果
     const resultWithProxy = {
@@ -1331,7 +1292,6 @@ export async function GET(request: NextRequest) {
 
     // 客户端广告配置：指定源 + APP/OrionTV UA 时 m3u8 套 proxy-m3u8
     const adminConfig = await getConfig();
-    timing.mark('admin_config_done_ms');
     const clientAdEnabled = (adminConfig.ClientAdSourceApis || []).includes(
       sourceCode
     );
@@ -1344,19 +1304,11 @@ export async function GET(request: NextRequest) {
       ) || resultWithProxy.episodes;
 
     const cacheTime = await getCacheTime();
-    timing.mark('cache_done_ms');
-    const timingHeaders = timing.headers();
-    console.log('[source-detail] timing', {
-      source: sourceCode,
-      id,
-      timing: timingHeaders['X-Source-Detail-Timing'],
-    });
 
     // 同一源在不同 UA 下 episodes 可能不同，避免 CDN/共享缓存串号
     if (clientAdEnabled) {
       return NextResponse.json(resultWithProxy, {
         headers: {
-          ...timingHeaders,
           'Cache-Control': 'private, no-store',
           Vary: 'User-Agent',
           'Netlify-Vary': 'query',
@@ -1366,7 +1318,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(resultWithProxy, {
       headers: {
-        ...timingHeaders,
         'Cache-Control': `public, max-age=${cacheTime}, s-maxage=${cacheTime}`,
         'CDN-Cache-Control': `public, s-maxage=${cacheTime}`,
         'Vercel-CDN-Cache-Control': `public, s-maxage=${cacheTime}`,
@@ -1374,17 +1325,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    timing.mark('error_ms');
-    const timingHeaders = timing.headers();
-    console.error('[source-detail] error', {
-      source: sourceCode,
-      id,
-      error: (error as Error).message,
-      timing: timingHeaders['X-Source-Detail-Timing'],
-    });
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 500, headers: timingHeaders }
+      { status: 500 }
     );
   }
 }

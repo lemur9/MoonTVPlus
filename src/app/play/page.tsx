@@ -4381,50 +4381,6 @@ function PlayPageClient() {
     updateVideoUrl(detail, currentEpisodeIndex);
   }, [detail, currentEpisodeIndex]);
 
-  const parseSourceDetailTiming = (value: string | null) => {
-    if (!value) return null;
-    try {
-      return JSON.parse(value);
-    } catch {
-      return value;
-    }
-  };
-
-  const fetchSourceDetailWithDebug = async (
-    url: string,
-    context: Record<string, string>
-  ) => {
-    const startedAt = performance.now();
-    console.info('[source-detail] request', { ...context, url });
-
-    try {
-      const response = await fetch(url);
-      const elapsedMs = Math.round(performance.now() - startedAt);
-      const timingHeader = response.headers.get('x-source-detail-timing');
-      const serverTimingHeader = response.headers.get('server-timing');
-
-      console.info('[source-detail] response', {
-        ...context,
-        url,
-        ok: response.ok,
-        status: response.status,
-        elapsed_ms: elapsedMs,
-        timing: parseSourceDetailTiming(timingHeader),
-        server_timing: serverTimingHeader,
-      });
-
-      return response;
-    } catch (error) {
-      console.error('[source-detail] request failed', {
-        ...context,
-        url,
-        elapsed_ms: Math.round(performance.now() - startedAt),
-        error,
-      });
-      throw error;
-    }
-  };
-
   // 进入页面时直接获取全部源信息
   useEffect(() => {
     const fetchSourceDetail = async (
@@ -4439,12 +4395,7 @@ function PlayPageClient() {
         if (fileNameParam) {
           url += `&fileName=${encodeURIComponent(fileNameParam)}`;
         }
-        const detailResponse = await fetchSourceDetailWithDebug(url, {
-          source,
-          id,
-          title,
-          phase: 'initial',
-        });
+        const detailResponse = await fetch(url);
         if (!detailResponse.ok) {
           throw new Error('获取视频详情失败');
         }
@@ -5261,13 +5212,7 @@ function PlayPageClient() {
       // 这类源统一通过详情接口补全播放数据
       if (isLazyDetailSource(newDetail.source) && (!newDetail.episodes || newDetail.episodes.length === 0)) {
         try {
-          const detailUrl = appendSpecialSourceParam(`/api/source-detail?source=${newSource}&id=${newId}&title=${encodeURIComponent(newTitle)}`);
-          const detailResponse = await fetchSourceDetailWithDebug(detailUrl, {
-            source: newSource,
-            id: newId,
-            title: newTitle,
-            phase: 'lazy-switch',
-          });
+          const detailResponse = await fetch(appendSpecialSourceParam(`/api/source-detail?source=${newSource}&id=${newId}&title=${encodeURIComponent(newTitle)}`));
           if (detailResponse.ok) {
             const detailData = await detailResponse.json();
             if (!detailData) {
